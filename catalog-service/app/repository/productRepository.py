@@ -80,9 +80,12 @@ async def get_products_by_keyword(keyword: str, db: Session,  page: int = 1,
 
 
 async def create(form: CreateProduct, db: Session):
-    db.add(Product(code=form.code, name=form.name, description=form.description, img_url=form.image_url, price=form.price))
+    product = Product(code = form.code,name=form.name, description=form.description, img_url=form.image_url, price=form.price)
+    db.add(product)
     try:
         db.commit()
+        db.refresh(product)
+        return product
     except Exception:
         db.rollback()
         raise

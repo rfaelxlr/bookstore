@@ -16,29 +16,37 @@ def get_db():
         yield db
     finally:
         db.close()
+        
+
 
 
 @router.get("")
-async def get_products(page: int = 1, limit: int = 10, db: Session = Depends(get_db), keyword: str = Query(None,min_length=1)):
+async def get_products(page: int = 1, limit: int = 10, db: Session = Depends(get_db), keyword: str = Query(None, min_length=1)):
     if keyword is not None and len(keyword) > 0:
-        result = await productRepository.get_products_by_keyword(db=db, page=page, limit= limit, keyword=keyword)
-        return ProductResponse(totalElements=result.total_record, totalPages=result.total_pages, 
-                           currentPage=result.page_number, data=[Data(p) for p in result.content])
-        
+        result = await productRepository.get_products_by_keyword(db=db, page=page, limit=limit, keyword=keyword)
+        return ProductResponse(totalElements=result.total_record, totalPages=result.total_pages,
+                               currentPage=result.page_number, data=[Data(p) for p in result.content])
+
     result = await productRepository.get_products(db, page, limit)
-    return ProductResponse(totalElements=result.total_record, totalPages=result.total_pages, 
+    return ProductResponse(totalElements=result.total_record, totalPages=result.total_pages,
                            currentPage=result.page_number, data=[Data(p) for p in result.content])
+
 
 @router.get("/{code}")
-async def get_product_by_code(code: str = Path(..., alias = "code"), db: Session = Depends(get_db)):
+async def get_product_by_code(code: str = Path(..., alias="code"), db: Session = Depends(get_db)):
     result = await productRepository.get_product_by_code(db=db, code=code)
-    
+
     if result is None:
-        raise HTTPException(status_code=404, detail=f"Product with code {code} not found")
-    
+        raise HTTPException(
+            status_code=404, detail=f"Product with code {code} not found")
+
     return Data(result)
 
-@router.post("")
-async def create_product(form: CreateProduct,db: Session = Depends(get_db)):
-    return await productRepository.create(form=form, db=db)
-    
+
+@router.post("",status_code=201)
+async def create_product(form: CreateProduct, db: Session = Depends(get_db)):
+    product = await productRepository.create(form=form, db=db)
+    return {"external_id": product.external_id, 
+            "code": product.code, "name": product.name,
+            "description": product.description, 
+            "image_url": product.img_url, "price": product.price}
