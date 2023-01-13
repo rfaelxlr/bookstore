@@ -50,3 +50,18 @@ async def create_product(form: CreateProduct, db: Session = Depends(get_db)):
             "code": product.code, "name": product.name,
             "description": product.description, 
             "image_url": product.img_url, "price": product.price}
+
+
+@router.put("/{code}")
+async def update_product(form: CreateProduct, code: str = Path(..., alias="code"), db: Session = Depends(get_db)):
+    product = await productRepository.update(form=form, db=db, code= code)
+    return {"external_id": product.external_id, 
+            "code": product.code, "name": product.name,
+            "description": product.description, 
+            "image_url": product.img_url, "price": product.price}
+    
+@router.delete("/{code}",status_code=200)
+async def delete_product(code: str = Path(..., alias="code"), db: Session = Depends(get_db)):
+    await productRepository.delete(code=code, db=db)
+    return {"result":True}
+    

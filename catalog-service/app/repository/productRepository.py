@@ -1,7 +1,7 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy.sql import select, insert
+from sqlalchemy.sql import select
 from sqlalchemy import func
-from sqlalchemy.sql.dml import Insert
 
 
 from models.entity.product import Product
@@ -16,7 +16,7 @@ async def get_products(db: Session,  page: int = 1,
     query = select([Product.external_id,
                    Product.code, Product.name, Product.description,
                    Product.img_url, Product.price,
-                   Product.discount])
+                   Product.discount]).where(Product.active == True)
 
     count_query = select(func.count(1)).select_from(query)
 
@@ -39,11 +39,11 @@ async def get_products(db: Session,  page: int = 1,
     )
 
 
-async def get_product_by_code(code: str, db: Session):
+async def get_product_by_code(code: str, db: Session) -> Product:
     query = select([Product.external_id,
                    Product.code, Product.name, Product.description,
                    Product.img_url, Product.price,
-                   Product.discount]).where(Product.code == code)
+                   Product.discount]).where((Product.code == code) & (Product.active == True))
 
     return db.execute(query).fetchone()
 
@@ -80,7 +80,8 @@ async def get_products_by_keyword(keyword: str, db: Session,  page: int = 1,
 
 
 async def create(form: CreateProduct, db: Session):
-    product = Product(code = form.code,name=form.name, description=form.description, img_url=form.image_url, price=form.price)
+    product = Product(code=form.code, name=form.name,
+                      description=form.description, img_url=form.image_url, price=form.price)
     db.add(product)
     try:
         db.commit()
@@ -89,4 +90,31 @@ async def create(form: CreateProduct, db: Session):
     except Exception:
         db.rollback()
         raise
-    
+
+
+async def update(form: CreateProduct,code : str, db: Session):
+    product = db.query(Product).filter((Product.code == code) & (Product.active == True)).first()
+    if product is None:
+        raise HTTPException(
+            status_code=404, detail=f"Product with code {code} not found")
+        
+    product.name = form.name
+    product.description = form.description
+    product.img_url = form.image_url
+    product.price = form.price
+        
+    db.commit()
+    db.refresh(product)
+
+    return product
+
+
+async def delete(code : str, db: Session):
+    product = db.query(Product).filter((Product.code == code) & (Product.active == True)).first()
+    if product is None:
+        raise HTTPException(
+            status_code=404, detail=f"Product with code {code} not found")
+        
+    product.active = False
+    db.commit()
+    db.refresh(product)
