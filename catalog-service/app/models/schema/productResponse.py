@@ -16,20 +16,21 @@ class Data (BaseModel):
     salesPrice: Optional[float]
 
     def __init__(self, p: Product):
-        salesPrice= (p.price - p.discount) if p.price and p.discount else 0
+        discount = (p.discount) if p.discount else 0
+        salesPrice= (p.price - discount) if p.price else 0
         super().__init__(
             external_id=p.external_id,
             code = p.code,
             name = p.name,
             description = p.description,
-            img_url = p.img_url,
+            img_url = p.image_url,
             price = p.price,
-            discount = p.discount,
+            discount = discount,
             salesPrice = salesPrice)
             
 
 
-class ProductResponse (BaseModel):
+class PaginetedProductResponse (BaseModel):
     totalElements: int
     totalPages: int
     currentPage: int

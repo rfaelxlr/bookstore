@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
-from models.schema.productResponse import ProductResponse
+from models.schema.productResponse import PaginetedProductResponse
 from repository import productRepository
 from database.database_local import SessionLocal
 from sqlalchemy.orm import Session
@@ -24,11 +24,11 @@ def get_db():
 async def get_products(page: int = 1, limit: int = 10, db: Session = Depends(get_db), keyword: str = Query(None, min_length=1)):
     if keyword is not None and len(keyword) > 0:
         result = await productRepository.get_products_by_keyword(db=db, page=page, limit=limit, keyword=keyword)
-        return ProductResponse(totalElements=result.total_record, totalPages=result.total_pages,
+        return PaginetedProductResponse(totalElements=result.total_record, totalPages=result.total_pages,
                                currentPage=result.page_number, data=[Data(p) for p in result.content])
 
     result = await productRepository.get_products(db, page, limit)
-    return ProductResponse(totalElements=result.total_record, totalPages=result.total_pages,
+    return PaginetedProductResponse(totalElements=result.total_record, totalPages=result.total_pages,
                            currentPage=result.page_number, data=[Data(p) for p in result.content])
 
 
@@ -46,19 +46,13 @@ async def get_product_by_code(code: str = Path(..., alias="code"), db: Session =
 @router.post("",status_code=201)
 async def create_product(form: CreateProduct, db: Session = Depends(get_db)):
     product = await productRepository.create(form=form, db=db)
-    return {"external_id": product.external_id, 
-            "code": product.code, "name": product.name,
-            "description": product.description, 
-            "image_url": product.img_url, "price": product.price}
+    return Data(product)
 
 
 @router.put("/{code}")
 async def update_product(form: CreateProduct, code: str = Path(..., alias="code"), db: Session = Depends(get_db)):
     product = await productRepository.update(form=form, db=db, code= code)
-    return {"external_id": product.external_id, 
-            "code": product.code, "name": product.name,
-            "description": product.description, 
-            "image_url": product.img_url, "price": product.price}
+    return Data(product)
     
 @router.delete("/{code}",status_code=200)
 async def delete_product(code: str = Path(..., alias="code"), db: Session = Depends(get_db)):
