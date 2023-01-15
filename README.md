@@ -43,7 +43,7 @@ A typical application usage flow looks like:
 
 ### Backend Services
 
-#### 1. catalog-service
+#### 1. catalog-service (I did with Python/FastAPI
 This service manages the books catalog and exposes the following REST API endpoints:
 * Get books by page
 * Get book by code(ISBN)
