@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -72,13 +73,21 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public Cart removeItemToCart() {
-        return null;
+    public CartResponse removeItemToCart(Long cartId, String itemCode) {
+        Cart cart = getCartById(cartId);
+        Optional<CartItem> cartItem = cart.removeItem(itemCode);
+        if(cartItem.isPresent()){
+            cartItemRepository.deleteById(cartItem.get().getId());
+            cartRepository.save(cart);
+        }
+        return new CartResponse(cart);
     }
 
+
     @Override
-    public boolean deleteCart() {
-        return false;
+    public void deleteCart(Long cartId) {
+        Cart cart = getCartById(cartId);
+        cartRepository.delete(cart);
     }
 
 

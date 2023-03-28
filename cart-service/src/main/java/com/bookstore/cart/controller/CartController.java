@@ -6,6 +6,7 @@ import com.bookstore.cart.domain.vo.CartResponse;
 import com.bookstore.cart.service.CartService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,5 +40,14 @@ public class CartController {
         return ResponseEntity.ok(cartService.addItemToCart(request,cartId));
     }
 
+    @DeleteMapping("/{cartId}/items/{itemCode}")
+    public ResponseEntity<CartResponse> removeItemInCart(@PathVariable Long cartId, @PathVariable String itemCode){
+        return ResponseEntity.ok(cartService.removeItemToCart(cartId,itemCode));
+    }
 
+    @DeleteMapping("/{cartId}")
+    public ResponseEntity deleteCart(@PathVariable Long cartId){
+        cartService.deleteCart(cartId);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -11,6 +11,7 @@ public interface CartService {
     Cart createCart();
     CartResponse getCartResponseById(Long cartId);
     CartResponse addItemToCart(AddItemRequest request, Long cartId) throws IOException;
-    Cart removeItemToCart();
-    boolean deleteCart();
+    CartResponse removeItemToCart(Long cartId, String itemId);
+    void deleteCart(Long cartId);
+
 }

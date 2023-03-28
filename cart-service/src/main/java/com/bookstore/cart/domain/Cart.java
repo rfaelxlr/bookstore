@@ -18,6 +18,7 @@ import javax.persistence.OneToMany;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -78,5 +79,15 @@ public class Cart implements Serializable {
         }
         return !CollectionUtils.isEmpty(this.getItems().stream()
                 .filter(item -> item.getQuantity().equals(quantity) && item.getCode().equals(productCode)).collect(Collectors.toSet()));
+    }
+
+    public Optional<CartItem> removeItem(String itemCode) {
+        if (this.isHasItem(itemCode)) {
+            Optional<CartItem> cartItem = this.getItems().stream()
+                    .filter(item -> item.getCode().equals(itemCode)).findFirst();
+            this.getItems().removeIf(item -> item.getCode().equals(itemCode));
+            return cartItem;
+        }
+        return Optional.empty();
     }
 }
